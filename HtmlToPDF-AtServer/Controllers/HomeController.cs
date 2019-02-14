@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Drawing.Printing;
 using System.Linq;
 using System.Web;
@@ -33,6 +34,10 @@ namespace HtmlToPDF_AtServer.Controllers
 
             test newTest = new test { Id = 2, Name = "Arslan" };
 
+            string imgPath = Server.MapPath("~/Content/") + "polar.jpg";
+
+            var base64Image = ImageToBase64(imgPath);
+
             string body = string.Empty;
             StreamReader reader = new StreamReader(Server.MapPath("~/Views/Shared/sample.html"));
             using (reader)
@@ -42,6 +47,8 @@ namespace HtmlToPDF_AtServer.Controllers
 
             body = body.Replace("{NAME}", newTest.Name);
             body = body.Replace("{ID}", Convert.ToString(newTest.Id));
+            body = body.Replace("{SRC}", base64Image);
+
 
             //string HTML_FILEPATH = Server.MapPath("~/Views/Shared/sample.html");
 
@@ -52,7 +59,7 @@ namespace HtmlToPDF_AtServer.Controllers
             byte[] pdfContent = pechkin.Convert(body);
 
             string directory = Server.MapPath("~/SavedPDF/");
-            string filename = "hello_world.pdf";
+            string filename = "clientPDF_" + newTest.Name + "_" + DateTime.Now.ToString("dd-MMM-yyyy") + ".pdf";
 
             if (ByteArrayToFile(directory + filename, pdfContent))
             {
@@ -96,6 +103,23 @@ namespace HtmlToPDF_AtServer.Controllers
                 viewResult.View.Render(viewContext, sw);
                 viewResult.ViewEngine.ReleaseView(ControllerContext, viewResult.View);
                 return sw.GetStringBuilder().ToString();
+            }
+        }
+
+        public static string ImageToBase64(string _imagePath)
+        {
+            string _base64String = null;
+
+            using (Image _image = Image.FromFile(_imagePath))
+            {
+                using (MemoryStream _mStream = new MemoryStream())
+                {
+                    _image.Save(_mStream, _image.RawFormat);
+                    byte[] _imageBytes = _mStream.ToArray();
+                    _base64String = Convert.ToBase64String(_imageBytes);
+
+                    return "data:image/jpg;base64," + _base64String;
+                }
             }
         }
     }
