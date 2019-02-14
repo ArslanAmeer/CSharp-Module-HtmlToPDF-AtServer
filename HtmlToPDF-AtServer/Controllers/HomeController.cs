@@ -20,7 +20,7 @@ namespace HtmlToPDF_AtServer.Controllers
             return View();
         }
 
-        public ActionResult ConnvertPDF()
+        public ActionResult ConvertPdf()
         {
             GlobalConfig gc = new GlobalConfig();
 
@@ -29,8 +29,6 @@ namespace HtmlToPDF_AtServer.Controllers
                 .SetPaperSize(PaperKind.Letter);
 
             IPechkin pechkin = new SynchronizedPechkin(gc);
-
-            ObjectConfig configuration = new ObjectConfig();
 
             test newTest = new test { Id = 2, Name = "Arslan" };
 
@@ -49,13 +47,6 @@ namespace HtmlToPDF_AtServer.Controllers
             body = body.Replace("{ID}", Convert.ToString(newTest.Id));
             body = body.Replace("{SRC}", base64Image);
 
-
-            //string HTML_FILEPATH = Server.MapPath("~/Views/Shared/sample.html");
-
-            //configuration
-            //    .SetAllowLocalContent(true)
-            //    .SetPageUri(@"file:///" + HTML_FILEPATH);
-
             byte[] pdfContent = pechkin.Convert(body);
 
             string directory = Server.MapPath("~/SavedPDF/");
@@ -73,19 +64,19 @@ namespace HtmlToPDF_AtServer.Controllers
             return RedirectToAction("Index");
         }
 
-        public bool ByteArrayToFile(string _FileName, byte[] _ByteArray)
+        public bool ByteArrayToFile(string fileName, byte[] byteArray)
         {
             try
             {
-                FileStream _FileStream = new FileStream(_FileName, FileMode.Create, FileAccess.Write);
-                _FileStream.Write(_ByteArray, 0, _ByteArray.Length);
-                _FileStream.Close();
+                FileStream fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write);
+                fileStream.Write(byteArray, 0, byteArray.Length);
+                fileStream.Close();
 
                 return true;
             }
-            catch (Exception _Exception)
+            catch (Exception exception)
             {
-                Console.WriteLine("Exception caught in process while trying to save : {0}", _Exception.ToString());
+                Console.WriteLine("Exception caught in process while trying to save : {0}", exception.ToString());
             }
 
             return false;
@@ -106,19 +97,17 @@ namespace HtmlToPDF_AtServer.Controllers
             }
         }
 
-        public static string ImageToBase64(string _imagePath)
+        private string ImageToBase64(string imagePath)
         {
-            string _base64String = null;
-
-            using (Image _image = Image.FromFile(_imagePath))
+            using (Image image = Image.FromFile(imagePath))
             {
-                using (MemoryStream _mStream = new MemoryStream())
+                using (MemoryStream mStream = new MemoryStream())
                 {
-                    _image.Save(_mStream, _image.RawFormat);
-                    byte[] _imageBytes = _mStream.ToArray();
-                    _base64String = Convert.ToBase64String(_imageBytes);
+                    image.Save(mStream, image.RawFormat);
+                    byte[] imageBytes = mStream.ToArray();
+                    var base64String = Convert.ToBase64String(imageBytes);
 
-                    return "data:image/jpg;base64," + _base64String;
+                    return "data:image/jpg;base64," + base64String;
                 }
             }
         }
